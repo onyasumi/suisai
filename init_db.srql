@@ -1,11 +1,4 @@
-DEFINE TABLE user SCHEMAFULL
+DEFINE TABLE albums SCHEMALESS
     PERMISSIONS
         FOR select, update, create, delete WHERE id = $auth.id;
-DEFINE FIELD email ON user TYPE string;
-DEFINE FIELD password ON user TYPE string;
-DEFINE INDEX idx_user ON user COLUMNS email UNIQUE;
-
-
-DEFINE SCOPE account SESSION 24h
-    SIGNUP ( CREATE user SET email = $email, password = crypto::argon2::generate($password) )
-    SIGNIN ( SELECT * FROM user WHERE email = $email AND crypto::argon2::compare(password, $password));
+DEFINE FIELD path ON albums TYPE string;
