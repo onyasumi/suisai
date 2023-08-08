@@ -1,4 +1,26 @@
-DEFINE TABLE albums SCHEMALESS
+BEGIN TRANSACTION;
+DEFINE TABLE album SCHEMALESS
     PERMISSIONS
         FOR select, update, create, delete WHERE id = $auth.id;
-DEFINE FIELD path ON albums TYPE string;
+DEFINE FIELD label ON album TYPE string;
+DEFINE FIELD path ON file TYPE string;
+DEFINE FIELD children ON album TYPE array;
+DEFINE FIELD children.* ON album TYPE record(file);
+DEFINE FIELD owner ON album TYPE record(user);
+DEFINE INDEX idx_album ON album COLUMNS path UNIQUE;
+COMMIT TRANSACTION;
+
+
+BEGIN TRANSACTION;
+DEFINE TABLE file SCHEMALESS
+    PERMISSIONS
+       FOR select, update, create, delete WHERE id = $auth.id;
+DEFINE FIELD path ON file TYPE string;
+DEFINE FIELD thumbnail ON file TYPE string;
+DEFINE FIELD directory ON file TYPE boolean;
+DEFINE FIELD album ON file TYPE record(album);
+DEFINE FIELD children ON file TYPE array;
+DEFINE FIELD children.* ON file TYPE record(file);
+DEFINE FIELD public ON album TYPE bool;
+DEFINE INDEX idx_file ON album COLUMNS path UNIQUE;
+COMMIT TRANSACTION;

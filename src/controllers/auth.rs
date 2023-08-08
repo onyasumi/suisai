@@ -51,7 +51,7 @@ pub async fn login(Json(payload): Json<models::auth::User>) -> (StatusCode, Stri
 #[debug_handler]
 pub async fn update_credentials(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<models::auth::User>) -> (StatusCode, String) {
 
-    // Authenticate with JWT
+    // Authenticate with JWT & extract metadata
     match crate::DB.authenticate(header.token()).await {
         Ok(_) => (),
         Err(err) => return (StatusCode::UNAUTHORIZED, err.to_string())
@@ -59,8 +59,9 @@ pub async fn update_credentials(TypedHeader(header): TypedHeader<Authorization<B
 
     let jwt_payload: models::auth::JwtPayload = utils::auth::extract_jwt_header(header.token());
 
-    // Change email and/or password
     crate::DB.use_ns(jwt_payload.ns).use_db(jwt_payload.db).await.unwrap();
+
+    // Change email and/or password
 
     let user_id: Thing = utils::auth::string_to_thing(jwt_payload.id);
 
