@@ -52,19 +52,12 @@ pub async fn login(Json(payload): Json<models::auth::User>) -> (StatusCode, Stri
 pub async fn update_credentials(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<models::auth::User>) -> (StatusCode, String) {
 
     // Authenticate with JWT & extract metadata
-    match crate::DB.authenticate(header.token()).await {
-        Ok(_) => (),
+    let user_id: Thing = match utils::auth::authenticate(header.token()).await {
+        Ok(t) => t,
         Err(err) => return (StatusCode::UNAUTHORIZED, err.to_string())
     };
 
-    let jwt_payload: models::auth::JwtPayload = utils::auth::extract_jwt_header(header.token());
-
-    crate::DB.use_ns(jwt_payload.ns).use_db(jwt_payload.db).await.unwrap();
-
     // Change email and/or password
-
-    let user_id: Thing = utils::auth::string_to_thing(jwt_payload.id);
-
     if payload.email != "" {
         crate::DB.query("UPDATE $id SET email = $new_email")
             .bind(("id", user_id.clone()))

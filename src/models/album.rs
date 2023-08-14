@@ -5,14 +5,11 @@ use surrealdb::sql::Thing;
 pub struct Album {
     pub label: String,
     pub path: String,
-    pub children: Vec<Thing>,
-    pub owner: Thing,
-    pub id: Thing
-}
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AlbumHTTP {
-    pub label: String,
-    pub path: String,
-    pub id: String
+    #[serde(default)]
+    pub children: Vec<Thing>,
+
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub owner: Option<Thing>
 }
