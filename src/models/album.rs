@@ -13,3 +13,9 @@ pub struct Album {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub owner: Option<Thing>
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AlbumWrapper {
+    pub album: Album,
+    pub id: String
+}

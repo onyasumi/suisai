@@ -8,7 +8,6 @@ use axum::headers::Authorization;
 use axum::headers::authorization::Bearer;
 use surrealdb::sql::Thing;
 
-// Maybe return
 
 #[debug_handler]
 pub async fn create_album(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<models::album::Album>) -> (StatusCode, String) {
@@ -23,7 +22,7 @@ pub async fn create_album(TypedHeader(header): TypedHeader<Authorization<Bearer>
     let _: models::album::Album = match crate::DB.create("album").content(
         models::album::Album {
             label: payload.label,
-            path: payload.path,
+            path: payload.path.clone(),
             children: payload.children,
             owner: Some(user_id)
         }
@@ -35,7 +34,16 @@ pub async fn create_album(TypedHeader(header): TypedHeader<Authorization<Bearer>
         }
     };
 
+    // Return new album ID
+    let id = match utils::album::album_id_from_path(payload.path).await {
+        Ok(val) => val,
+        Err(err) => {
+            crate::DB.invalidate();
+            return (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+        }
+    };
+
     crate::DB.invalidate();
-    (StatusCode::OK, "meow".to_string())
+    (StatusCode::OK, id)
 
 }
