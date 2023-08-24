@@ -16,6 +16,7 @@ pub struct Album {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AlbumWrapper {
+    #[serde(flatten)]
     pub album: Album,
     pub id: String
 }

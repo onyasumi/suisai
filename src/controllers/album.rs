@@ -6,12 +6,13 @@ use axum::http::StatusCode;
 use axum::TypedHeader;
 use axum::headers::Authorization;
 use axum::headers::authorization::Bearer;
+use surrealdb::Error;
 use surrealdb::sql::Thing;
-use crate::models::album::AlbumWrapper;
+use crate::models::album::{Album, AlbumWrapper};
 
 
 #[debug_handler]
-pub async fn create_album(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<models::album::Album>) -> (StatusCode, String) {
+pub async fn create_album(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<Album>) -> (StatusCode, String) {
 
     // Authenticate with JWT & extract metadata
     let user_id: Thing = match utils::auth::authenticate(header.token()).await {
@@ -20,8 +21,8 @@ pub async fn create_album(TypedHeader(header): TypedHeader<Authorization<Bearer>
     };
 
     // Create album
-    let _: models::album::Album = match crate::DB.create("album").content(
-        models::album::Album {
+    let _: Album = match crate::DB.create("album").content(
+        Album {
             label: payload.label,
             path: payload.path.clone(),
             children: payload.children,
@@ -51,10 +52,10 @@ pub async fn create_album(TypedHeader(header): TypedHeader<Authorization<Bearer>
 
 
 #[debug_handler]
-pub async fn rename_album(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<models::album::AlbumWrapper>) -> (StatusCode, String) {
+pub async fn rename_album(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<AlbumWrapper>) -> (StatusCode, String) {
 
     // Authenticate with JWT & extract metadata
-    let user_id: Thing = match utils::auth::authenticate(header.token()).await {
+    let _user_id: Thing = match utils::auth::authenticate(header.token()).await {
         Ok(t) => t,
         Err(err) => return (StatusCode::UNAUTHORIZED, err.to_string())
     };
@@ -74,8 +75,48 @@ pub async fn rename_album(TypedHeader(header): TypedHeader<Authorization<Bearer>
 
 
 #[debug_handler]
-pub async fn get_albums(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<models::album::AlbumWrapper>) -> (StatusCode, Result<Json<Vec<models::album::AlbumWrapper>>, String>) {
+pub async fn get_albums(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(_payload): Json<AlbumWrapper>) -> (StatusCode, Result<Json<Vec<AlbumWrapper>>, String>) {
 
-    (StatusCode::IM_A_TEAPOT, Err("meow".to_string()))
+    // Authenticate with JWT & extract metadata
+    let _user_id: Thing = match utils::auth::authenticate(header.token()).await {
+        Ok(t) => t,
+        Err(err) => return (StatusCode::UNAUTHORIZED, Err(err.to_string()))
+    };
+
+    match crate::DB.select::<Vec<AlbumWrapper>>("album").await {
+        Ok(vec) => {
+            crate::DB.invalidate();
+            (StatusCode::OK, Ok(Json(vec)))
+        },
+        Err(err) => {
+            crate::DB.invalidate();
+            (StatusCode::INTERNAL_SERVER_ERROR, Err(err.to_string()))
+        }
+    }
+
+}
+
+
+#[debug_handler]
+pub async fn delete_album(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<AlbumWrapper>) -> (StatusCode, String) {
+
+    // Authenticate with JWT & extract metadata
+    let _user_id: Thing = match utils::auth::authenticate(header.token()).await {
+        Ok(t) => t,
+        Err(err) => return (StatusCode::UNAUTHORIZED, err.to_string())
+    };
+
+    // TODO: Delete album folder(s) first
+
+
+    // Delete album from DB and return result
+    let result: Result<Album, Error> = crate::DB.delete(("album", payload.id)).await;
+
+    crate::DB.invalidate();
+
+    return match result {
+        Ok(_) => (StatusCode::OK, "meow".to_string()),
+        Err(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+    }
 
 }
