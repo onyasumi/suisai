@@ -1,2 +1,3 @@
 pub mod auth;
-pub mod album;
+pub mod get_id;
+pub mod directory;

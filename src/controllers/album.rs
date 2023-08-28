@@ -1,6 +1,3 @@
-use crate::models;
-use crate::utils;
-
 use axum::{debug_handler, Json};
 use axum::http::StatusCode;
 use axum::TypedHeader;
@@ -8,8 +5,9 @@ use axum::headers::Authorization;
 use axum::headers::authorization::Bearer;
 use surrealdb::Error;
 use surrealdb::sql::Thing;
-use crate::models::album::{Album, AlbumWrapper};
 
+use crate::models::album::{Album, AlbumWrapper};
+use crate::utils;
 
 #[debug_handler]
 pub async fn create_album(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<Album>) -> (StatusCode, String) {
@@ -25,7 +23,6 @@ pub async fn create_album(TypedHeader(header): TypedHeader<Authorization<Bearer>
         Album {
             label: payload.label,
             path: payload.path.clone(),
-            children: payload.children,
             owner: Some(user_id)
         }
     ).await {
@@ -37,7 +34,7 @@ pub async fn create_album(TypedHeader(header): TypedHeader<Authorization<Bearer>
     };
 
     // Return new album ID
-    let id = match utils::album::album_id_from_path(payload.path).await {
+    let id = match utils::get_id::get_album_id(payload.path).await {
         Ok(val) => val,
         Err(err) => {
             crate::DB.invalidate();

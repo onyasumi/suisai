@@ -4,8 +4,6 @@ DEFINE TABLE album SCHEMALESS
         FOR select, update, create, delete WHERE id = $auth.id;
 DEFINE FIELD label ON album TYPE string;
 DEFINE FIELD path ON file TYPE string;
-DEFINE FIELD children ON album TYPE array;
-DEFINE FIELD children.* ON album TYPE record(file);
 DEFINE FIELD owner ON album TYPE record(user);
 DEFINE INDEX idx_album ON album COLUMNS path UNIQUE;
 COMMIT TRANSACTION;
