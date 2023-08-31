@@ -1,10 +1,9 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Directory {
     pub name: String,
-    pub path: String,
 
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]

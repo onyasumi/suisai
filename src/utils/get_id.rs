@@ -2,6 +2,7 @@ use surrealdb::Error;
 use surrealdb::Error::Db;
 use surrealdb::error::Db::Ignore;
 use surrealdb::sql::Thing;
+use crate::models::directory::Directory;
 
 pub async fn get_album_id(path: String) -> Result<String, Error> {
 
@@ -15,10 +16,21 @@ pub async fn get_album_id(path: String) -> Result<String, Error> {
 
 }
 
-pub async fn get_directory_id(path: String, album: Thing) -> Result<String, Error> {
+pub async fn get_directory_id(dir: Directory) -> Result<String, Error> {
 
-    let mut response = crate::DB.query("SELECT id FROM folder WHERE path = $path AND album = $album")
-        .bind(("path", path))
+    let album = match dir.album {
+        Some(val) => val,
+        None => return Err(Db(Ignore))
+    };
+
+    let parent = match dir.parent {
+        Some(val) => val,
+        None => return Err(Db(Ignore))
+    };
+
+    let mut response = crate::DB.query("SELECT id FROM folder WHERE name = name AND parent = $parent AND album = $album")
+        .bind(("name", dir.name))
+        .bind(("parent", parent))
         .bind(("album", album)).await?;
 
     match response.take::<Option<String>>((0, "id"))? {

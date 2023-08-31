@@ -20,14 +20,7 @@ pub async fn create_directory(TypedHeader(header): TypedHeader<Authorization<Bea
     };
 
     // Create directory
-    let _: Directory = match crate::DB.create("directory").content(
-        Directory {
-            name: payload.name,
-            path: payload.path.clone(),
-            album: payload.album.clone(),
-            parent: payload.parent
-        }
-    ).await {
+    let _: Directory = match crate::DB.create("directory").content(payload.clone()).await {
         Ok(val) => val,
         Err(err) => {
             crate::DB.invalidate();
@@ -35,13 +28,8 @@ pub async fn create_directory(TypedHeader(header): TypedHeader<Authorization<Bea
         }
     };
 
-    let album = match payload.album {
-        Some(val) => val,
-        None => return (StatusCode::BAD_REQUEST, "Album field missing".to_string())
-    };
-
     // Return new directory ID
-    let id = match get_directory_id(payload.path, album).await {
+    let id = match get_directory_id(payload).await {
         Ok(val) => val,
         Err(err) => {
             crate::DB.invalidate();
