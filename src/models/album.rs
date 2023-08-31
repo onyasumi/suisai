@@ -17,3 +17,5 @@ pub struct AlbumWrapper {
     pub album: Album,
     pub id: String
 }
+
+// TODO: Replace wrappers with skip_deserializing macro

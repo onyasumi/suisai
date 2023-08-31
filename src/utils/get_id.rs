@@ -1,7 +1,6 @@
 use surrealdb::Error;
 use surrealdb::Error::Db;
 use surrealdb::error::Db::Ignore;
-use surrealdb::sql::Thing;
 use crate::models::directory::Directory;
 
 pub async fn get_album_id(path: String) -> Result<String, Error> {

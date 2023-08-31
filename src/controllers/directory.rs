@@ -61,3 +61,27 @@ pub async fn delete_directory(TypedHeader(header): TypedHeader<Authorization<Bea
     (StatusCode::OK, "meow".to_string())
 
 }
+
+
+#[debug_handler]
+pub async fn relocate_directory(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<DirectoryWrapper>) -> (StatusCode, String) {
+
+    // Authenticate with JWT & extract metadata
+    let _: Thing = match utils::auth::authenticate(header.token()).await {
+        Ok(t) => t,
+        Err(err) => return (StatusCode::UNAUTHORIZED, err.to_string())
+    };
+
+    // Set new values for parent/album
+    match crate::DB.query("UPDATE $id SET parent = $new_parent AND album = $new_album")
+        .bind(("id", payload.id))
+        .bind(("new_parent", payload.directory.parent))
+        .bind(("new_album", payload.directory.album)).await {
+        Ok(_) => (),
+        Err(err) => return (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+    }
+
+    crate::DB.invalidate();
+    (StatusCode::IM_A_TEAPOT, "meow".to_string())
+
+}

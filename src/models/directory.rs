@@ -3,6 +3,7 @@ use surrealdb::sql::Thing;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Directory {
+    #[serde(default)]
     pub name: String,
 
     #[serde(default)]
