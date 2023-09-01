@@ -3,15 +3,16 @@ use axum::http::StatusCode;
 use axum::TypedHeader;
 use axum::headers::Authorization;
 use axum::headers::authorization::Bearer;
+use surrealdb::Error;
 use surrealdb::sql::Thing;
 
-use crate::models::directory::{Directory, DirectoryWrapper};
+use crate::models::file::{File, FileWrapper};
 use crate::utils;
-use crate::utils::directory::delete_recursive;
-use crate::utils::get_id::{get_directory_id};
+use crate::utils::get_id::get_file_id;
+
 
 #[debug_handler]
-pub async fn create_directory(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<Directory>) -> (StatusCode, String) {
+pub async fn create_file(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<File>) -> (StatusCode, String) {
 
     // Authenticate with JWT & extract metadata
     let _: Thing = match utils::auth::authenticate(header.token()).await {
@@ -19,8 +20,8 @@ pub async fn create_directory(TypedHeader(header): TypedHeader<Authorization<Bea
         Err(err) => return (StatusCode::UNAUTHORIZED, err.to_string())
     };
 
-    // Create directory
-    let _: Directory = match crate::DB.create("directory").content(payload.clone()).await {
+    // Create file
+    let _: File = match crate::DB.create("file").content(payload.clone()).await {
         Ok(val) => val,
         Err(err) => {
             crate::DB.invalidate();
@@ -28,8 +29,8 @@ pub async fn create_directory(TypedHeader(header): TypedHeader<Authorization<Bea
         }
     };
 
-    // Return new directory ID
-    let id = match get_directory_id(payload).await {
+    // Return new file ID
+    let id = match get_file_id(payload).await {
         Ok(val) => val,
         Err(err) => {
             crate::DB.invalidate();
@@ -44,7 +45,7 @@ pub async fn create_directory(TypedHeader(header): TypedHeader<Authorization<Bea
 
 
 #[debug_handler]
-pub async fn delete_directory(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<DirectoryWrapper>) -> (StatusCode, String) {
+pub async fn delete_file(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<FileWrapper>) -> (StatusCode, String) {
 
     // Authenticate with JWT & extract metadata
     let _: Thing = match utils::auth::authenticate(header.token()).await {
@@ -52,19 +53,19 @@ pub async fn delete_directory(TypedHeader(header): TypedHeader<Authorization<Bea
         Err(err) => return (StatusCode::UNAUTHORIZED, err.to_string())
     };
 
-    match delete_recursive(payload.id).await {
-        Ok(_) => (),
-        Err(err) => return (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
-    }
+    let result: Result<File, Error> = crate::DB.delete(("file", payload.id)).await;
 
     crate::DB.invalidate();
-    (StatusCode::OK, "meow".to_string())
+
+    return match result {
+        Ok(_) => (StatusCode::OK, "meow".to_string()),
+        Err(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+    }
 
 }
 
-
 #[debug_handler]
-pub async fn relocate_directory(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<DirectoryWrapper>) -> (StatusCode, String) {
+pub async fn relocate_file(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<FileWrapper>) -> (StatusCode, String) {
 
     // Authenticate with JWT & extract metadata
     let _: Thing = match utils::auth::authenticate(header.token()).await {
@@ -75,8 +76,8 @@ pub async fn relocate_directory(TypedHeader(header): TypedHeader<Authorization<B
     // Set new values for parent/album
     match crate::DB.query("UPDATE $id SET parent = $new_parent AND album = $new_album")
         .bind(("id", payload.id))
-        .bind(("new_parent", payload.directory.parent))
-        .bind(("new_album", payload.directory.album)).await {
+        .bind(("new_parent", payload.file.directory.parent))
+        .bind(("new_album", payload.file.directory.album)).await {
         Ok(_) => (),
         Err(err) => return (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
     }

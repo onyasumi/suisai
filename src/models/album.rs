@@ -19,3 +19,4 @@ pub struct AlbumWrapper {
 }
 
 // TODO: Replace wrappers with skip_deserializing macro
+// TODO: Remove path from album, make it a wrapper of folder - one folder/album

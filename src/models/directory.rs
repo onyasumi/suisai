@@ -23,11 +23,3 @@ pub struct DirectoryWrapper {
     pub id: Thing
     
 }
-
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Photo {
-    #[serde(flatten)]
-    pub folder: Directory,
-    pub thumbnail: String
-}
