@@ -6,8 +6,10 @@ use axum::headers::authorization::Bearer;
 use surrealdb::Error;
 use surrealdb::sql::Thing;
 
-use crate::models::album::{Album, AlbumWrapper};
+use crate::models::album::{Album, AlbumReturn, AlbumWrapper};
+use crate::models::directory::DirectoryWrapper;
 use crate::utils;
+use crate::utils::auth::string_to_thing;
 
 #[debug_handler]
 pub async fn create_album(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<Album>) -> (StatusCode, String) {
@@ -32,6 +34,8 @@ pub async fn create_album(TypedHeader(header): TypedHeader<Authorization<Bearer>
             return (StatusCode::CONFLICT, err.to_string())
         }
     };
+
+    // TODO: Create empty parent directory
 
     // Return new album ID
     let id = match utils::get_id::get_album_id(payload.path).await {
@@ -90,6 +94,53 @@ pub async fn get_albums(TypedHeader(header): TypedHeader<Authorization<Bearer>>,
             (StatusCode::INTERNAL_SERVER_ERROR, Err(err.to_string()))
         }
     }
+
+}
+
+#[debug_handler]
+pub async fn query_album(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<Thing>) -> (StatusCode, Result<AlbumReturn, String>) {
+
+    // Authenticate with JWT & extract metadata
+    let _: Thing = match utils::auth::authenticate(header.token()).await {
+        Ok(t) => t,
+        Err(err) => return (StatusCode::UNAUTHORIZED, Err(err.to_string()))
+    };
+
+    let result: Result<AlbumWrapper, Error> = crate::DB.select(("album", payload.id)).await;
+
+    let album: AlbumWrapper = match result {
+        Ok(val) => val,
+        Err(err) => {
+            crate::DB.invalidate();
+            return (StatusCode::INTERNAL_SERVER_ERROR, Err(err.to_string()));
+        }
+    };
+
+    let mut dir_result = match crate::DB.query("SELECT * FROM directory WHERE album = $album AND parent = NONE")
+        .bind(("album", string_to_thing(album.id.clone()))).await {
+        Ok(val) => val,
+        Err(err) => {
+            crate::DB.invalidate();
+            return (StatusCode::INTERNAL_SERVER_ERROR, Err(err.to_string()));
+        }
+    };
+
+    let root = match dir_result.take::<Option<DirectoryWrapper>>(0) {
+        Ok(val) => match val {
+            Some(val) => val,
+            None => {
+                crate::DB.invalidate();
+                return (StatusCode::INTERNAL_SERVER_ERROR, Err("Database error".to_string()));
+            }
+        },
+        Err(err) => {
+            crate::DB.invalidate();
+            return (StatusCode::INTERNAL_SERVER_ERROR, Err(err.to_string()));
+        }
+    };
+
+    crate::DB.invalidate();
+    (StatusCode::IM_A_TEAPOT, Ok(AlbumReturn {album, root}))
 
 }
 
