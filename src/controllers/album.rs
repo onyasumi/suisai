@@ -98,7 +98,7 @@ pub async fn get_albums(TypedHeader(header): TypedHeader<Authorization<Bearer>>,
 }
 
 #[debug_handler]
-pub async fn query_album(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<Thing>) -> (StatusCode, Result<AlbumReturn, String>) {
+pub async fn query_album(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<Thing>) -> (StatusCode, Result<Json<AlbumReturn>, String>) {
 
     // Authenticate with JWT & extract metadata
     let _: Thing = match utils::auth::authenticate(header.token()).await {
@@ -140,7 +140,7 @@ pub async fn query_album(TypedHeader(header): TypedHeader<Authorization<Bearer>>
     };
 
     crate::DB.invalidate();
-    (StatusCode::IM_A_TEAPOT, Ok(AlbumReturn {album, root}))
+    (StatusCode::OK, Ok(Json::from(AlbumReturn { album, root })))
 
 }
 

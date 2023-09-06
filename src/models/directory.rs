@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
+use crate::models::file::FileWrapper;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Directory {
@@ -22,4 +23,12 @@ pub struct DirectoryWrapper {
     pub directory: Directory,
     pub id: Thing
     
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DirectoryReturn {
+
+    pub directories: Vec<DirectoryWrapper>,
+    pub files: Vec<FileWrapper>
+
 }

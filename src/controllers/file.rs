@@ -43,6 +43,28 @@ pub async fn create_file(TypedHeader(header): TypedHeader<Authorization<Bearer>>
 
 }
 
+#[debug_handler]
+pub async fn query_file(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<Thing>) -> (StatusCode, Result<Json<FileWrapper>, String>) {
+
+    // Authenticate with JWT & extract metadata
+    let _: Thing = match utils::auth::authenticate(header.token()).await {
+        Ok(t) => t,
+        Err(err) => return (StatusCode::UNAUTHORIZED, Err(err.to_string()))
+    };
+
+    let file: FileWrapper = match crate::DB.select(("file", payload.id)).await {
+        Ok(val) => val,
+        Err(err) => {
+            crate::DB.invalidate();
+            return (StatusCode::INTERNAL_SERVER_ERROR, Err(err.to_string()))
+        }
+    };
+
+    crate::DB.invalidate();
+    (StatusCode::OK, Ok(Json::from(file)))
+
+}
+
 
 #[debug_handler]
 pub async fn delete_file(TypedHeader(header): TypedHeader<Authorization<Bearer>>, Json(payload): Json<FileWrapper>) -> (StatusCode, String) {
