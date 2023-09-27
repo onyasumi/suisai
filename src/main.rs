@@ -4,10 +4,12 @@ mod models;
 
 use axum::Router;
 use axum::routing::{get, post, patch};
+use tower_http::cors::{Any, CorsLayer};
 use surrealdb::Surreal;
 use surrealdb::engine::remote::ws::Ws;
 use surrealdb::engine::remote::ws::Client;
 use std::net::SocketAddr;
+use axum::http::header;
 
 static DB: Surreal<Client> = Surreal::init();
 
@@ -25,7 +27,11 @@ async fn main() {
     let app = Router::new()
         .route("/auth/signup", post(controllers::auth::create_user))
         .route("/auth/login", post(controllers::auth::login))
-        .route("/auth", patch(controllers::auth::update_credentials));
+        .route("/auth", patch(controllers::auth::update_credentials))
+        .layer(CorsLayer::new()
+            .allow_origin(Any)
+            .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION])
+        );
 
     // Start Server
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));

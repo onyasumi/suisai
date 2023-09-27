@@ -13,7 +13,7 @@ Start SurrealDB
 
     surreal start --log trace --user root --pass root memory
 
-Start a SurrealDB REPL and initialize the database by pasting the contents of `init_*.srql`
+Start a SurrealDB REPL and initialize the database by pasting the contents of `init_auth.srql` and `init_db.srql`
 
     surreal sql --conn http://0.0.0.0:8000 --user root --pass root --ns test --db test
     
