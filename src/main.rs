@@ -1,19 +1,19 @@
 mod controllers;
-mod utils;
+pub(crate) mod utils;
 pub(crate) mod models;
 
 use axum::Router;
-use axum::routing::{get, post, patch};
+use axum::routing::{post, patch};
 use tower_http::cors::{Any, CorsLayer};
 use surrealdb::Surreal;
 use surrealdb::engine::remote::ws::Ws;
 use surrealdb::engine::remote::ws::Client;
-use std::net::SocketAddr;
 use axum::http::header;
+use once_cell::sync::Lazy;
 use tokio::net::TcpListener;
 
 
-static DB: Surreal<Client> = Surreal::init();
+static DB: Lazy<Surreal<Client>> = Lazy::new(Surreal::init);
 
 
 #[tokio::main]

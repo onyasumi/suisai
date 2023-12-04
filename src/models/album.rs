@@ -8,20 +8,9 @@ pub struct Album {
 
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub owner: Option<Thing>
-}
+    pub owner: Option<Thing>,
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AlbumWrapper {
-    #[serde(flatten)]
-    pub album: Album,
-    pub id: String
+    #[serde(default)]
+    #[serde(skip_serializing)]
+    pub id: Option<Thing>
 }
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AlbumReturn {
-    #[serde(flatten)]
-    pub album: AlbumWrapper,
-}
-
-// TODO: Replace wrappers with skip_deserializing macro
