@@ -1,6 +1,6 @@
 mod controllers;
 mod utils;
-mod models;
+pub(crate) mod models;
 
 use axum::Router;
 use axum::routing::{get, post, patch};

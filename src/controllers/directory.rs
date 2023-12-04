@@ -1,8 +1,8 @@
 use axum::{debug_handler, Json};
 use axum::http::StatusCode;
-use axum::TypedHeader;
-use axum::headers::Authorization;
-use axum::headers::authorization::Bearer;
+use axum_extra::TypedHeader;
+use axum_extra::headers::Authorization;
+use axum_extra::headers::authorization::Bearer;
 use surrealdb::sql::Thing;
 
 use crate::models::directory::{Directory, DirectoryReturn, DirectoryWrapper};
