@@ -7,7 +7,6 @@ use surrealdb::Error;
 use surrealdb::sql::Thing;
 
 use crate::models::album::{Album, AlbumReturn, AlbumWrapper};
-use crate::models::directory::DirectoryWrapper;
 use crate::utils;
 use crate::utils::auth::string_to_thing;
 

@@ -10,6 +10,8 @@ use surrealdb::engine::remote::ws::Ws;
 use surrealdb::engine::remote::ws::Client;
 use std::net::SocketAddr;
 use axum::http::header;
+use tokio::net::TcpListener;
+
 
 static DB: Surreal<Client> = Surreal::init();
 
@@ -34,11 +36,7 @@ async fn main() {
         );
 
     // Start Server
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    tracing::debug!("listening on {}", addr);
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    axum::serve(listener, app).await.unwrap();
 
 }
