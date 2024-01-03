@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
 
+
+// An album is a pointer to a directory
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Album {
     pub label: String,
