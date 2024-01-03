@@ -1,4 +1,4 @@
-mod controllers;
+mod endpoints;
 pub(crate) mod utils;
 pub(crate) mod models;
 
@@ -27,9 +27,9 @@ async fn main() {
 
     // Routes
     let app = Router::new()
-        .route("/auth/signup", post(controllers::auth::create_user))
-        .route("/auth/login", post(controllers::auth::login))
-        .route("/auth", patch(controllers::auth::update_credentials))
+        .route("/auth/signup", post(endpoints::auth::create_user))
+        .route("/auth/login", post(endpoints::auth::login))
+        .route("/auth", patch(endpoints::auth::update_credentials))
         .layer(CorsLayer::new()
             .allow_origin(Any)
             .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION])
