@@ -7,18 +7,3 @@ DEFINE FIELD path ON file TYPE string;
 DEFINE FIELD owner ON album TYPE record(user);
 DEFINE INDEX idx_album ON album COLUMNS path UNIQUE;
 COMMIT TRANSACTION;
-
-
-BEGIN TRANSACTION;
-DEFINE TABLE file SCHEMALESS
-    PERMISSIONS
-       FOR select, update, create, delete WHERE id = $auth.id;
-DEFINE FIELD path ON file TYPE string;
-DEFINE FIELD thumbnail ON file TYPE string;
-DEFINE FIELD directory ON file TYPE boolean;
-DEFINE FIELD album ON file TYPE record(album);
-DEFINE FIELD children ON file TYPE array;
-DEFINE FIELD children.* ON file TYPE record(file);
-DEFINE FIELD public ON album TYPE bool;
-DEFINE INDEX idx_file ON album COLUMNS path UNIQUE;
-COMMIT TRANSACTION;

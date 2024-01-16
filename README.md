@@ -21,3 +21,4 @@ Exit the REPL, and start `suisai`
 
     cargo run
 
+By default, the server listens for listens for requests at `0.0.0.0:3000`

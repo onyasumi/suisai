@@ -3,7 +3,7 @@ pub(crate) mod utils;
 pub(crate) mod models;
 
 use axum::Router;
-use axum::routing::{post, patch};
+use axum::routing::{post, patch, get, delete};
 use tower_http::cors::{Any, CorsLayer};
 use surrealdb::Surreal;
 use surrealdb::engine::remote::ws::Ws;
@@ -30,6 +30,10 @@ async fn main() {
         .route("/auth/signup", post(endpoints::auth::create_user))
         .route("/auth/login", post(endpoints::auth::login))
         .route("/auth", patch(endpoints::auth::update_credentials))
+        .route("/album/create", post(endpoints::album::create_album))
+        .route("/album/get", get(endpoints::album::get_albums))
+        .route("/album/rename", patch(endpoints::album::rename_album))
+        .route("/album/delete", delete(endpoints::album::delete_album))
         .layer(CorsLayer::new()
             .allow_origin(Any)
             .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION])
