@@ -2,7 +2,7 @@
 
 # 水彩 suisai
 
-**suisai** (watercolor) is a digital photo album
+**suisai** (watercolor) is a tag-based photo management software
 
 [![GPLv2](https://img.shields.io/badge/license-GPLv2-green)](#)
 
