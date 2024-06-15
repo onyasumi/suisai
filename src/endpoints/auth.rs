@@ -9,7 +9,7 @@ use axum_extra::headers::authorization::Bearer;
 use surrealdb::opt::auth::Jwt;
 use surrealdb::opt::auth::Scope;
 use surrealdb::sql::Thing;
-use crate::endpoints::axum_error::{AxumError, IntoAxumError};
+use crate::utils::axum_error::{AxumError, IntoAxumError};
 
 #[debug_handler]
 pub async fn create_user(Json(payload): Json<models::auth::User>) -> Result<(StatusCode, String), AxumError> {
